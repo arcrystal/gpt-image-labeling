@@ -2,7 +2,6 @@
 from scrape import scrape_wikipedia_sites
 from curate import Curate
 from aggregate import aggregate_and_save
-import time
 
 
 # FOR THIS TO RUN YOU NEED TWO ADDITIONAL ITEMS:
@@ -13,4 +12,4 @@ if __name__ == '__main__':
     # scrape_wikipedia_sites("sites.txt")
     c = Curate()
     c.process_directories("data")
-    #aggregate_and_save("data")
+    aggregate_and_save("data")

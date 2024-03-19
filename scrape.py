@@ -1,14 +1,28 @@
+import urllib
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from chromedriver_py import binary_path
-import requests
+import re
 import os
+from urllib.request import urlretrieve
+import requests
 import shutil
 
 
+def remove_thumbnail_suffix(url):
+    new_url = re.sub(r'/thumb', '', url)
+    new_url = re.sub(r'/[0-9]+px-.+\.(jpg|png|gif)$', '', new_url)
+    return new_url
+
+
 def download_image(url, folder, image_number):
-    response = requests.get(url, headers={'User-agent': 'bot 0.1'}, stream=True)
+    modified_url = remove_thumbnail_suffix(url)
     fname = os.path.join(folder, f"image{image_number:03}.jpg")
+    try:
+        response = requests.get(modified_url, stream=True, headers={'User-agent': 'bot 0.1'})
+    except urllib.error.HTTPError:
+        response = requests.get(url, stream=True, headers={'User-agent': 'bot 0.1'})
+
     with open(fname, 'wb') as f:
         shutil.copyfileobj(response.raw, f)
 
@@ -62,7 +76,7 @@ def get_rows(table):
 def scrape_wikipedia(url, name):
     data_dir = os.path.join("data", name)
     os.makedirs(data_dir, exist_ok=True)
-    driver = webdriver.Chrome(executable_path=binary_path)
+    driver = webdriver.Chrome()
     driver.get(url)
     tables = driver.find_elements(By.CLASS_NAME, 'wikitable')
     labels = []
@@ -111,3 +125,6 @@ def scrape_wikipedia_sites(sites_list_fname):
         name = site.split("/")[-1].strip()
         print("\nName:", name)
         scrape_wikipedia(site, name)
+
+
+scrape_wikipedia("https://en.wikipedia.org/wiki/List_of_Indian_dishes", "IndianTest")
