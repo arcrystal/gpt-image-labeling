@@ -1,15 +1,31 @@
+import urllib
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from chromedriver_py import binary_path
-import requests
+import re
 import os
+import requests
 import shutil
 
 
-def download_image(url, folder, image_number):
-    response = requests.get(url, headers={'User-agent': 'bot 0.1'}, stream=True)
-    fname = os.path.join(folder, f"image{image_number:03}.jpg")
-    with open(fname, 'wb') as f:
+def remove_thumbnail_suffix(url):
+    new_url = re.sub(r'/thumb', '', url)
+    new_url = re.sub(r'/[0-9]+px-.+\.(jpg|png|gif)$', '', new_url)
+    return new_url
+
+
+def download_image(url, folder, image_number, highres):
+    if highres:
+        modified_url = remove_thumbnail_suffix(url)
+        try:
+            response = requests.get(modified_url, stream=True, headers={'User-agent': 'bot 0.1'})
+        except urllib.error.HTTPError:
+            response = requests.get(url, stream=True, headers={'User-agent': 'bot 0.1'})
+    else:
+        response = requests.get(url, headers={'User-agent': 'bot 0.1'}, stream=True)
+
+    filename = os.path.join(folder, f"image{image_number:03}.jpg")
+    with open(filename, 'wb') as f:
         shutil.copyfileobj(response.raw, f)
 
 
@@ -59,10 +75,10 @@ def get_rows(table):
     return label_col, rows
 
 
-def scrape_wikipedia(url, name):
-    data_dir = os.path.join("data", name)
+def scrape_wikipedia(url, name, folder, highres):
+    data_dir = os.path.join(folder, name)
     os.makedirs(data_dir, exist_ok=True)
-    driver = webdriver.Chrome(executable_path=binary_path)
+    driver = webdriver.Chrome()
     driver.get(url)
     tables = driver.find_elements(By.CLASS_NAME, 'wikitable')
     labels = []
@@ -93,7 +109,7 @@ def scrape_wikipedia(url, name):
                 img_url = img.get_attribute('src')
                 if is_data(label, img_url):
                     labels.append(label)
-                    download_image(img_url, data_dir, image_number)
+                    download_image(img_url, data_dir, image_number, highres=highres)
                     image_number += 1
                     urls.add(img_url)
     else:
@@ -106,8 +122,8 @@ def scrape_wikipedia(url, name):
     driver.quit()
 
 
-def scrape_wikipedia_sites(sites_list_fname):
-    for site in open(sites_list_fname).readlines():
+def scrape_wikipedia_sites(sites_list_filename, folder, highres=False):
+    for site in open(sites_list_filename).readlines():
         name = site.split("/")[-1].strip()
         print("\nName:", name)
-        scrape_wikipedia(site, name)
+        scrape_wikipedia(site, name, folder, highres=highres)
