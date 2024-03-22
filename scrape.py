@@ -4,7 +4,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 import re
 import os
-from urllib.request import urlretrieve
 import requests
 import shutil
 
@@ -15,15 +14,18 @@ def remove_thumbnail_suffix(url):
     return new_url
 
 
-def download_image(url, folder, image_number):
-    modified_url = remove_thumbnail_suffix(url)
-    fname = os.path.join(folder, f"image{image_number:03}.jpg")
-    try:
-        response = requests.get(modified_url, stream=True, headers={'User-agent': 'bot 0.1'})
-    except urllib.error.HTTPError:
-        response = requests.get(url, stream=True, headers={'User-agent': 'bot 0.1'})
+def download_image(url, folder, image_number, highres):
+    if highres:
+        modified_url = remove_thumbnail_suffix(url)
+        try:
+            response = requests.get(modified_url, stream=True, headers={'User-agent': 'bot 0.1'})
+        except urllib.error.HTTPError:
+            response = requests.get(url, stream=True, headers={'User-agent': 'bot 0.1'})
+    else:
+        response = requests.get(url, headers={'User-agent': 'bot 0.1'}, stream=True)
 
-    with open(fname, 'wb') as f:
+    filename = os.path.join(folder, f"image{image_number:03}.jpg")
+    with open(filename, 'wb') as f:
         shutil.copyfileobj(response.raw, f)
 
 
@@ -73,7 +75,7 @@ def get_rows(table):
     return label_col, rows
 
 
-def scrape_wikipedia(url, name, folder):
+def scrape_wikipedia(url, name, folder, highres):
     data_dir = os.path.join(folder, name)
     os.makedirs(data_dir, exist_ok=True)
     driver = webdriver.Chrome()
@@ -107,7 +109,7 @@ def scrape_wikipedia(url, name, folder):
                 img_url = img.get_attribute('src')
                 if is_data(label, img_url):
                     labels.append(label)
-                    download_image(img_url, data_dir, image_number)
+                    download_image(img_url, data_dir, image_number, highres=highres)
                     image_number += 1
                     urls.add(img_url)
     else:
@@ -120,8 +122,8 @@ def scrape_wikipedia(url, name, folder):
     driver.quit()
 
 
-def scrape_wikipedia_sites(sites_list_fname, folder):
-    for site in open(sites_list_fname).readlines():
+def scrape_wikipedia_sites(sites_list_filename, folder, highres=False):
+    for site in open(sites_list_filename).readlines():
         name = site.split("/")[-1].strip()
         print("\nName:", name)
-        scrape_wikipedia(site, name, folder)
+        scrape_wikipedia(site, name, folder, highres=highres)

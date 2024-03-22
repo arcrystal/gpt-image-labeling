@@ -9,7 +9,7 @@ from aggregate import aggregate_and_save
 # 2. YOU NEED A FILE CALLED API_KEY (with your openai API key)
 
 if __name__ == '__main__':
-    scrape_wikipedia_sites("sites.txt", "data_highres")
+    scrape_wikipedia_sites("sites.txt", "data_highres", highres=True)
     # c = Curate()
     # c.process_directories("data")
     # aggregate_and_save("data")
