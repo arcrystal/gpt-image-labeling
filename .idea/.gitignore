@@ -169,9 +169,9 @@ cython_debug/
 #.idea/
 
 # Custom
-*.DS_Store
-data/
-data_highres/
-API_KEY
+*/.DS_Store
+*/data/
+*/data_highres/
+*/API_KEY
 */*/*.jpg
-labels.txt
+*/sites.txt
