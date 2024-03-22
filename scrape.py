@@ -1,4 +1,4 @@
-import urllib
+from urllib.error import HTTPError
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -19,7 +19,7 @@ def download_image(url, folder, image_number, highres):
         modified_url = remove_thumbnail_suffix(url)
         try:
             response = requests.get(modified_url, stream=True, headers={'User-agent': 'bot 0.1'})
-        except urllib.error.HTTPError:
+        except HTTPError:
             response = requests.get(url, stream=True, headers={'User-agent': 'bot 0.1'})
     else:
         response = requests.get(url, headers={'User-agent': 'bot 0.1'}, stream=True)
