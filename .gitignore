@@ -161,5 +161,8 @@ cython_debug/
 
 # Custom
 *.DS_Store
-Data/
+data/
+data_highres/
 API_KEY
+*.jpg
+labels.txt

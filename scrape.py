@@ -73,8 +73,8 @@ def get_rows(table):
     return label_col, rows
 
 
-def scrape_wikipedia(url, name):
-    data_dir = os.path.join("data", name)
+def scrape_wikipedia(url, name, folder):
+    data_dir = os.path.join(folder, name)
     os.makedirs(data_dir, exist_ok=True)
     driver = webdriver.Chrome()
     driver.get(url)
@@ -120,11 +120,8 @@ def scrape_wikipedia(url, name):
     driver.quit()
 
 
-def scrape_wikipedia_sites(sites_list_fname):
+def scrape_wikipedia_sites(sites_list_fname, folder):
     for site in open(sites_list_fname).readlines():
         name = site.split("/")[-1].strip()
         print("\nName:", name)
-        scrape_wikipedia(site, name)
-
-
-scrape_wikipedia("https://en.wikipedia.org/wiki/List_of_Indian_dishes", "IndianTest")
+        scrape_wikipedia(site, name, folder)
